@@ -1,0 +1,42 @@
+# for local developmet
+version : '3.7'
+services:
+  frontend:
+    build:
+      context: .
+      target: 'develop-stage'
+    ports:
+      - '8080:8080'
+    volumes:
+      - './frontend:/app'
+    command: /bin/sh -c "npm run serve"
+    networks:
+      red:
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASS}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - ./data/postgres:/var/lib/postgres/data:delegated
+    networks:
+      red:
+
+  backend:
+    image: yiisoftware/yii2-php:8.1-apache
+    volumes:
+      - ./backend/composer/cache:/root/.composer/cache:delegated
+      - ./backend/basic:/app:delegated
+    environment:
+      DB_DATABASE: ${DATABASE_NAME}
+      DB_PASSWORD: ${DATABASE_PASS}
+      DB_USER: ${DATABASE_USER}
+      DB_HOST: postgres
+      PHP_USER_ID: ${USER_UNIX_ID}
+      PRODUCCION: 0
+    ports:
+      - 8001:80
+networks:
+  red:
